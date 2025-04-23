@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 80;
 
 const server = http.createServer(async (req, res) => {
   res.statusCode = 200;
