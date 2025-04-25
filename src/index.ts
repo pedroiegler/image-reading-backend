@@ -1,16 +1,21 @@
-import http from 'http';
+import Fastify from 'fastify';
 import dotenv from 'dotenv';
+import readingRoutes from './routes/readingRoutes';
 
 dotenv.config();
 
-const port = process.env.PORT || 80;
+const fastify = Fastify({ logger: true });
 
-const server = http.createServer(async (req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'application/json');
-  res.end(JSON.stringify({ message: 'API online!' }));
-});
+fastify.register(readingRoutes);
 
-server.listen(port, () => {
-  console.log(`Servidor rodando na porta ${port}`);
-});
+const start = async () => {
+  try {
+    await fastify.listen({ port: Number(process.env.PORT) || 3000, host: '0.0.0.0' });
+    console.log(`🚀 Servidor rodando`);
+  } catch (err) {
+    fastify.log.error(err);
+    process.exit(1);
+  }
+};
+
+start();

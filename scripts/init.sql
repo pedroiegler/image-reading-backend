@@ -15,11 +15,12 @@ CREATE TABLE IF NOT EXISTS images (
     measure_value INTEGER,
     measure_uuid UUID NOT NULL DEFAULT gen_random_uuid(),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    measure_month DATE GENERATED ALWAYS AS (DATE_TRUNC('month', measure_datetime)) STORED,
     FOREIGN KEY (customer_code) REFERENCES customers(customer_code) ON DELETE CASCADE
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS unique_monthly_reading ON images (
     customer_code, 
     measure_type, 
-    DATE_TRUNC('month', measure_datetime)
+    measure_month
 );

@@ -21,12 +21,19 @@
   },
   "homepage": "https://github.com/pedroiegler/image-reading-backend#readme",
   "dependencies": {
+    "axios": "^1.8.4",
     "dotenv": "^16.5.0",
-    "pg": "^8.15.1"
+    "fastify": "^5.3.2",
+    "fastify-cors": "^6.0.3",
+    "fastify-formbody": "^5.2.0",
+    "fastify-plugin": "^5.0.1",
+    "pg": "^8.15.5",
+    "zod": "^3.24.3"
   },
   "devDependencies": {
     "@types/node": "^22.14.1",
     "@types/pg": "^8.11.13",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.3"
   }
