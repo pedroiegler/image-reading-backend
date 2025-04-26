@@ -1,14 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { Pool } from 'pg';
-import { geminiApiRequest } from '../services/geminiService';
-
-const pool = new Pool({
-  host: process.env.POSTGRES_HOST,
-  port: Number(process.env.POSTGRES_PORT),
-  user: process.env.POSTGRES_USER,
-  password: process.env.POSTGRES_PASSWORD,
-  database: process.env.POSTGRES_DB,
-});
+import { geminiApiRequest } from '../services/gemini';
+import { pool } from 'database/connection';
 
 export const uploadReading = async (request: FastifyRequest, reply: FastifyReply) => {
     const { image, customer_code, measure_datetime, measure_type } = request.body as any;
@@ -50,10 +42,11 @@ export const uploadReading = async (request: FastifyRequest, reply: FastifyReply
 
     // Verificar se já existe uma leitura para o cliente e o tipo no mesmo mês
     const query = `
-        SELECT 1 FROM images 
-        WHERE customer_code = $1 
-        AND measure_type = $2 
-        AND DATE_TRUNC('month', measure_datetime) = DATE_TRUNC('month', $3)
+        SELECT 1 
+          FROM images 
+          WHERE customer_code = $1 
+            AND measure_type = $2 
+            AND DATE_TRUNC('month', measure_datetime) = DATE_TRUNC('month', $3::TIMESTAMP)
     `;
     
     const queryResult = await pool.query(query, [customer_code, measure_type, measure_datetime]);

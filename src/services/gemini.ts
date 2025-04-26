@@ -13,7 +13,12 @@ export const geminiApiRequest = async (base64Image: string) => {
       measure_uuid: response.data.measure_uuid,
     };
   } catch (error) {
-    console.error('Erro ao comunicar com a Gemini API:', error);
+    // Aqui você pode capturar mais detalhes do erro
+    if (axios.isAxiosError(error)) {
+      console.error('Erro Axios:', error.response?.data || error.message);
+    } else {
+      console.error('Erro inesperado:', error);
+    }
     throw new Error('Erro ao comunicar com a Gemini API');
   }
 };

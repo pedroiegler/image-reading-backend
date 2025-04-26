@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS images (
     measure_datetime TIMESTAMP NOT NULL,
     measure_type VARCHAR(10) CHECK (measure_type IN ('WATER', 'GAS')),
     measure_value INTEGER,
+    has_confirmed BOOLEAN DEFAULT false,
     measure_uuid UUID NOT NULL DEFAULT gen_random_uuid(),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     measure_month DATE GENERATED ALWAYS AS (DATE_TRUNC('month', measure_datetime)) STORED,
