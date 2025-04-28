@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
-import { uploadReading } from 'controllers/upload';
-import { getCustomerMeasures } from 'controllers/list';
+import { uploadReading } from '../controllers/upload';
+import { getCustomerMeasures } from '../controllers/list';
 import { getCustomerMeasuresSchema, uploadReadingSchema } from '../utils/schemas';
 
 export async function readingRoutes(app: FastifyInstance){

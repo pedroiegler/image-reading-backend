@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS images (
     image_url TEXT NOT NULL,
     measure_datetime TIMESTAMP NOT NULL,
     measure_type VARCHAR(10) CHECK (measure_type IN ('WATER', 'GAS')),
-    measure_value INTEGER,
+    measure_value NUMERIC,
     has_confirmed BOOLEAN DEFAULT false,
     measure_uuid UUID NOT NULL DEFAULT gen_random_uuid(),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

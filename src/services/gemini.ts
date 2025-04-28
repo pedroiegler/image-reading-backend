@@ -1,24 +1,16 @@
-import axios from 'axios';
+import { GoogleGenAI } from '@google/genai';
 
-export const geminiApiRequest = async (base64Image: string) => {
-  try {
-    const response = await axios.post('https://gemini-api.com/extract', {
-      image: base64Image,
-      api_key: process.env.GEMINI_API_KEY,
-    });
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-    return {
-      image_url: response.data.image_url,
-      measure_value: response.data.measure_value,
-      measure_uuid: response.data.measure_uuid,
-    };
-  } catch (error) {
-    // Aqui você pode capturar mais detalhes do erro
-    if (axios.isAxiosError(error)) {
-      console.error('Erro Axios:', error.response?.data || error.message);
-    } else {
-      console.error('Erro inesperado:', error);
-    }
-    throw new Error('Erro ao comunicar com a Gemini API');
-  }
-};
+const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+
+export async function geminiApiRequest(contents: any) {
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.0-flash-001',
+    contents,
+  });
+
+  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  
+  return text;
+}

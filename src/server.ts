@@ -27,10 +27,12 @@ app.register(fastifySwaggerUi, {
 app.register(readingRoutes);
 
 const start = async () => {
+  let port = Number(process.env.PORT) || 3000
   try {
-    await app.listen({ port: Number(process.env.PORT) || 3000, host: '0.0.0.0' });
-    console.log(`🚀 Servidor rodando`);
+    await app.listen({ port: port, host: '0.0.0.0' });
+    console.log(`Servidor rodando na porta ${port}`);
   } catch (err) {
+    console.log(err);
     app.log.error(err);
     process.exit(1);
   }

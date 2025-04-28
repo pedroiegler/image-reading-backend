@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { GetCustomerMeasuresParams, GetCustomerMeasuresQuery } from '../utils/interfaces';
-import { pool } from 'database/connection';
+import { pool } from '../database/connection';
 
 export const getCustomerMeasures = async (request: FastifyRequest, reply: FastifyReply) => {
     const { customer_code } = request.params as GetCustomerMeasuresParams;
@@ -13,7 +13,6 @@ export const getCustomerMeasures = async (request: FastifyRequest, reply: Fastif
       });
     }
   
-    // Montar a query para buscar as leituras
     let query = `
       SELECT measure_uuid, measure_datetime, measure_type, has_confirmed, image_url
       FROM images
@@ -22,16 +21,14 @@ export const getCustomerMeasures = async (request: FastifyRequest, reply: Fastif
   
     const queryParams = [customer_code];
   
-    // Se o tipo de medição foi fornecido, adicionar o filtro na query
     if (measure_type) {
-      query += ` AND LOWER(measure_type) = $2`;
+      query += ` AND measure_type = $2`;
       queryParams.push(measure_type.toUpperCase());
     }
   
     try {
       const result = await pool.query(query, queryParams);
   
-      // Verificar se foram encontrados resultados
       if (result.rowCount === 0) {
         return reply.status(404).send({
           error_code: 'MEASURES_NOT_FOUND',
@@ -39,12 +36,11 @@ export const getCustomerMeasures = async (request: FastifyRequest, reply: Fastif
         });
       }
   
-      // Retornar a resposta com as medidas do cliente
       return reply.status(200).send({
         customer_code,
         measures: result.rows.map((row: any) => ({
           measure_uuid: row.measure_uuid,
-          measure_datetime: row.measure_datetime, // Pode ser formatado se necessário
+          measure_datetime: row.measure_datetime,
           measure_type: row.measure_type,
           has_confirmed: row.has_confirmed,
           image_url: row.image_url,
