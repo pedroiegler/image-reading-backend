@@ -3,7 +3,7 @@ import { pool } from '../database/connection';
 import { v4 as uuidv4 } from 'uuid';
 import { geminiApiRequest } from '../services/gemini';
 
-export const uploadReading = async (request: FastifyRequest, reply: FastifyReply) => {
+export const postUploadReading = async (request: FastifyRequest, reply: FastifyReply) => {
   const { image, customer_code, measure_datetime, measure_type } = request.body as any;
 
   if (!/^data:image\/(png|jpeg|jpg);base64,/.test(image)) {

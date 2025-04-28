@@ -1,4 +1,4 @@
-export const uploadReadingSchema = {
+export const postUploadReadingSchema = {
   description: 'Responsável por receber uma imagem em base 64, consultar o Gemini e retornar a medida lida pela API.',
   tags: ['POST /upload'],
   body: {
@@ -55,6 +55,71 @@ export const uploadReadingSchema = {
       example: {
         error_code: 'DOUBLE_REPORT',
         error_description: 'Leitura do mês já realizada',
+      },
+    },
+  },
+};
+
+export const patchConfirmMeasuresSchema = {
+  description: 'Responsável por confirmar ou corrigir o valor lido pelo LLM.',
+  tags: ['PATCH /confirm'],
+  body: {
+    type: 'object',
+    required: ['measure_uuid', 'confirmed_value'],
+    properties: {
+      measure_uuid: {
+        type: 'string',
+      },
+      confirmed_value: {
+        anyOf: [
+          { type: 'integer' },
+          { type: 'string' },
+        ],
+      },
+    },
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' }
+      },
+      description: 'Operação realizada com sucesso',
+    },
+    400: {
+      type: 'object',
+      properties: {
+        error_code: { type: 'string' },
+        error_description: { type: 'string' },
+      },
+      description: 'Os dados fornecidos no corpo da requisição são inválidos',
+      example: {
+        error_code: 'INVALID_DATA',
+        error_description: '<descrição do erro>',
+      },
+    },
+    404: {
+      type: 'object',
+      properties: {
+        error_code: { type: 'string' },
+        error_description: { type: 'string' },
+      },
+      description: 'Leitura não encontrada',
+      example: {
+        error_code: 'MEASURE_NOT_FOUND',
+        error_description: 'Leitura do mês não foi encontrada',
+      },
+    },
+    409: {
+      type: 'object',
+      properties: {
+        error_code: { type: 'string' },
+        error_description: { type: 'string' },
+      },
+      description: 'Leitura já confirmada',
+      example: {
+        error_code: 'CONFIRMATION_DUPLICATE',
+        error_description: 'Leitura do mês já foi confirmada',
       },
     },
   },
