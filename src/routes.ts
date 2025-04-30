@@ -1,8 +1,8 @@
 import { FastifyInstance } from 'fastify';
-import { postUploadReading } from '../controllers/upload';
-import { patchConfirmMeasures } from '../controllers/confirm';
-import { getCustomerMeasures } from '../controllers/list';
-import { postUploadReadingSchema, patchConfirmMeasuresSchema, getCustomerMeasuresSchema } from '../utils/schemas';
+import { postUploadReading } from './controllers/upload';
+import { patchConfirmMeasures } from './controllers/confirm';
+import { getCustomerMeasures } from './controllers/list';
+import { postUploadReadingSchema, patchConfirmMeasuresSchema, getCustomerMeasuresSchema } from './utils/schemas';
 
 export async function readingRoutes(app: FastifyInstance){
   app.post('/upload', { schema: postUploadReadingSchema }, postUploadReading);

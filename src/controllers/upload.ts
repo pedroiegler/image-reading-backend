@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { pool } from '../database/connection';
 import { v4 as uuidv4 } from 'uuid';
-import { geminiApiRequest } from '../services/gemini';
+import { geminiApiRequest } from '../gemini';
 
 export const postUploadReading = async (request: FastifyRequest, reply: FastifyReply) => {
   try {

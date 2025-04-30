@@ -2,7 +2,7 @@ import { fastify } from 'fastify';
 import { fastifyCors } from '@fastify/cors';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
-import readingRoutes from './routes/routes';
+import readingRoutes from './routes';
 import dotenv from 'dotenv';
 
 dotenv.config();

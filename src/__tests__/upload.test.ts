@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { postUploadReading } from '../controllers/upload';
 import { pool } from '../database/connection';
-import { geminiApiRequest } from '../services/gemini';
+import { geminiApiRequest } from '../gemini';
 
 jest.mock('../database/connection', () => ({
   pool: {
