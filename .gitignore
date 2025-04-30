@@ -1,3 +1,6 @@
 node_modules/
 dist/
 .env
+coverage/
+jest-cache/
+jest-coverage/
