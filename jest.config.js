@@ -11,4 +11,6 @@ module.exports = {
       tsconfig: 'tsconfig.json',
     }],
   },
+  collectCoverage: true,
+  coverageDirectory: 'src/__tests__/coverage',
 };
