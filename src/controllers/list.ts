@@ -50,7 +50,7 @@ export const getCustomerMeasures = async (request: FastifyRequest, reply: Fastif
     console.error(error);
     return reply.status(500).send({
       error_code: 'INTERNAL_ERROR',
-      error_description: 'Erro interno no servidor',
+      error_description: 'Ocorreu um erro interno no servidor.',
     });
   }
 };
