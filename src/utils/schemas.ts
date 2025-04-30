@@ -57,6 +57,18 @@ export const postUploadReadingSchema = {
         error_description: 'Leitura do mês já realizada',
       },
     },
+    500: {
+      type: 'object',
+      properties: {
+        error_code: { type: 'string' },
+        error_description: { type: 'string' },
+      },
+      description: 'Erro interno do servidor',
+      example: {
+        error_code: 'INTERNAL_ERROR',
+        error_description: 'Ocorreu um erro interno no servidor.',
+      },
+    }, 
   },
 };
 
@@ -120,6 +132,18 @@ export const patchConfirmMeasuresSchema = {
       example: {
         error_code: 'CONFIRMATION_DUPLICATE',
         error_description: 'Leitura do mês já foi confirmada',
+      },
+    },
+    500: {
+      type: 'object',
+      properties: {
+        error_code: { type: 'string' },
+        error_description: { type: 'string' },
+      },
+      description: 'Erro interno do servidor',
+      example: {
+        error_code: 'INTERNAL_ERROR',
+        error_description: 'Ocorreu um erro interno no servidor.',
       },
     },
   },
@@ -207,6 +231,18 @@ export const getCustomerMeasuresSchema = {
       example: {
         error_code: 'MEASURES_NOT_FOUND',
         error_description: 'Nenhuma leitura encontrada',
+      },
+    },
+    500: {
+      type: 'object',
+      properties: {
+        error_code: { type: 'string' },
+        error_description: { type: 'string' },
+      },
+      description: 'Erro interno do servidor',
+      example: {
+        error_code: 'INTERNAL_ERROR',
+        error_description: 'Ocorreu um erro interno no servidor.',
       },
     },
   },
