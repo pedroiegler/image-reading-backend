@@ -54,7 +54,7 @@ export const patchConfirmMeasures = async (request: FastifyRequest, reply: Fasti
     } catch (error) {
         console.error(error);
         return reply.status(500).send({
-          error_code: "INTERNAL_SERVER_ERROR",
+          error_code: "INTERNAL_ERROR",
           error_description: "Ocorreu um erro interno no servidor."
         });
     }

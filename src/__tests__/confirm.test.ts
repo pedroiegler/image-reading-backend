@@ -1,4 +1,4 @@
-import { getCustomerMeasures } from '../controllers/list';
+import { patchConfirmMeasures } from '../controllers/confirm';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { pool } from '../database/connection';
 
@@ -8,7 +8,7 @@ jest.mock('../database/connection', () => ({
   },
 }));
 
-describe('getCustomerMeasures', () => {
+describe('patchConfirmMeasures', () => {
   const mockReply = () => {
     const reply = {
       status: jest.fn().mockReturnThis(),
@@ -17,80 +17,121 @@ describe('getCustomerMeasures', () => {
     return reply as unknown as FastifyReply;
   };
 
-  const mockRequest = (params: any, query: any): FastifyRequest => ({
-    params,
-    query,
+  const mockRequest = (body: any): FastifyRequest => ({
+    body,
   } as unknown as FastifyRequest);
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('deve retornar erro 400 se tipo de medição for inválido', async () => {
-    const request = mockRequest({ customer_code: '123' }, { measure_type: 'INVALIDO' });
+  it('deve retornar erro 400 se UUID for inválido', async () => {
+    const request = mockRequest({
+      measure_uuid: 'invalid-uuid',
+      confirmed_value: 100,
+    });
     const reply = mockReply();
 
-    await getCustomerMeasures(request, reply);
+    await patchConfirmMeasures(request, reply);
 
     expect(reply.status).toHaveBeenCalledWith(400);
     expect(reply.send).toHaveBeenCalledWith({
-      error_code: 'INVALID_TYPE',
-      error_description: 'Tipo de medição não permitida',
+      error_code: "INVALID_DATA",
+      error_description: "'measure_uuid' deve ser uma string UUID válida."
     });
   });
 
-  it('deve retornar erro 404 se nenhuma medida for encontrada', async () => {
-    (pool.query as jest.Mock).mockResolvedValue({ rowCount: 0, rows: [] });
-
-    const request = mockRequest({ customer_code: '123' }, {});
+  it('deve retornar erro 400 se valor confirmado não for número inteiro', async () => {
+    const request = mockRequest({
+      measure_uuid: '123e4567-e89b-12d3-a456-426614174000',
+      confirmed_value: 'abc',
+    });
     const reply = mockReply();
 
-    await getCustomerMeasures(request, reply);
+    await patchConfirmMeasures(request, reply);
+
+    expect(reply.status).toHaveBeenCalledWith(400);
+    expect(reply.send).toHaveBeenCalledWith({
+      error_code: "INVALID_DATA",
+      error_description: "'confirmed_value' deve ser um número inteiro."
+    });
+  });
+
+  it('deve retornar erro 404 se medida não existir', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0 });
+
+    const request = mockRequest({
+      measure_uuid: '123e4567-e89b-12d3-a456-426614174000',
+      confirmed_value: 150,
+    });
+    const reply = mockReply();
+
+    await patchConfirmMeasures(request, reply);
 
     expect(reply.status).toHaveBeenCalledWith(404);
     expect(reply.send).toHaveBeenCalledWith({
-      error_code: 'MEASURES_NOT_FOUND',
-      error_description: 'Nenhuma leitura encontrada',
+      error_code: "MEASURE_NOT_FOUND",
+      error_description: "Leitura do mês não foi encontrada"
     });
   });
 
-  it('deve retornar medidas quando encontradas', async () => {
-    const mockData = [
-      {
-        measure_uuid: 'abc-123',
-        measure_datetime: '2024-04-01T12:00:00Z',
-        measure_type: 'WATER',
-        has_confirmed: true,
-        image_url: 'http://image.jpg',
-      },
-    ];
+  it('deve retornar erro 409 se leitura já foi confirmada', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [{ has_confirmed: true }],
+    });
 
-    (pool.query as jest.Mock).mockResolvedValue({ rowCount: 1, rows: mockData });
-
-    const request = mockRequest({ customer_code: '123' }, { measure_type: 'water' });
+    const request = mockRequest({
+      measure_uuid: '123e4567-e89b-12d3-a456-426614174000',
+      confirmed_value: 150,
+    });
     const reply = mockReply();
 
-    await getCustomerMeasures(request, reply);
+    await patchConfirmMeasures(request, reply);
 
-    expect(reply.status).toHaveBeenCalledWith(200);
+    expect(reply.status).toHaveBeenCalledWith(409);
     expect(reply.send).toHaveBeenCalledWith({
-      customer_code: '123',
-      measures: mockData,
+      error_code: "CONFIRMATION_DUPLICATE",
+      error_description: "Leitura do mês já foi confirmada"
     });
   });
 
-  it('deve retornar erro 500 em caso de exceção', async () => {
-    (pool.query as jest.Mock).mockRejectedValue(new Error('erro'));
+  it('deve confirmar medida com sucesso', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ has_confirmed: false }],
+      })
+      .mockResolvedValueOnce({});
 
-    const request = mockRequest({ customer_code: '123' }, {});
+    const request = mockRequest({
+      measure_uuid: '123e4567-e89b-12d3-a456-426614174000',
+      confirmed_value: 200,
+    });
     const reply = mockReply();
 
-    await getCustomerMeasures(request, reply);
+    await patchConfirmMeasures(request, reply);
+
+    expect(pool.query).toHaveBeenCalledTimes(2);
+    expect(reply.status).toHaveBeenCalledWith(200);
+    expect(reply.send).toHaveBeenCalledWith({ success: true });
+  });
+
+  it('deve retornar erro 500 em caso de erro inesperado', async () => {
+    (pool.query as jest.Mock).mockRejectedValueOnce(new Error('erro inesperado'));
+
+    const request = mockRequest({
+      measure_uuid: '123e4567-e89b-12d3-a456-426614174000',
+      confirmed_value: 100,
+    });
+    const reply = mockReply();
+
+    await patchConfirmMeasures(request, reply);
 
     expect(reply.status).toHaveBeenCalledWith(500);
     expect(reply.send).toHaveBeenCalledWith({
-      error_code: 'INTERNAL_ERROR',
-      error_description: 'Erro interno no servidor',
+      error_code: "INTERNAL_ERROR",
+      error_description: "Ocorreu um erro interno no servidor."
     });
   });
 });
