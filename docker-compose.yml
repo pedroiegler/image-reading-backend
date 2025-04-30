@@ -20,7 +20,6 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ./data/postgres/data:/var/lib/postgresql/data/
-      - ./scripts:/docker-entrypoint-initdb.d
+      - ./src/database:/docker-entrypoint-initdb.d
     env_file:
       - ./dotenv_files/.env
