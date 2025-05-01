@@ -4,7 +4,7 @@ Esta aplicação é um back-end de um serviço de leitura de imagens, contendo 3
 
 ## 🏗 Arquitetura
 
-O sistema usa Node.js com TypeScript e Jest para testes, rodando em Docker junto a um banco PostgreSQL. Ele gerencia clientes e leituras de medidores (água/gás) utilizando a API do Google Gemini com validações e unicidade mensal. A arquitetura é modular, com variáveis de ambiente e volume persistente.
+O sistema é desenvolvido em Node.js com TypeScript, utilizando Jest para testes automatizados. Ele roda em contêineres Docker, junto a um banco de dados PostgreSQL com volume persistente. A arquitetura é modular e organizada em camadas, com uso de variáveis de ambiente externas. O sistema gerencia clientes e leituras de medidores (água/gás), utilizando a API do Google Gemini para extrair valores de imagens enviadas em base64.
 
 ### 📌 Diagrama do Projeto  
 ![Diagrama do Projeto](src/assets/images/project_model.png)
@@ -16,24 +16,12 @@ O sistema usa Node.js com TypeScript e Jest para testes, rodando em Docker junto
 2. Utiliza Jest para testes automatizados, com cobertura configurada.
 3. Integração com a Google Gemini API para leitura e interpretação das imagens enviadas.
 4. Banco de dados PostgreSQL, com tabelas para clientes e leituras mensais de medidores (água/gás), garantindo unicidade por cliente, tipo e mês.
-5. Contêineres Docker para app e banco, com volumes persistentes e variáveis de ambiente externas.]
+5. Contêineres Docker para app e banco, com volumes persistentes e variáveis de ambiente externas.
 6. Leitura de dados segue padrão UTC para consistência de horários.
 
 ---
 
-Agora, clone o repositório:  
-
-```bash
-# Via SSH
-git clone git@github.com:pedroiegler/image-reading-backend.git
-
-# Via HTTPS
-git clone https://github.com/pedroiegler/image-reading-backend.git
-```
-
----
-
-## ⚙️ Configuração
+## ⚙️ Etapas de Instalação e Execução
 
 1️⃣ **Configure as variáveis de ambiente:**  
 ```bash
