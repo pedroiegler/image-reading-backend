@@ -66,7 +66,7 @@ export const postUploadReadingSchema = {
       description: 'Erro interno do servidor',
       example: {
         error_code: 'INTERNAL_ERROR',
-        error_description: 'Ocorreu um erro interno no servidor.',
+        error_description: 'Ocorreu um erro interno no servidor',
       },
     }, 
   },
@@ -143,7 +143,7 @@ export const patchConfirmMeasuresSchema = {
       description: 'Erro interno do servidor',
       example: {
         error_code: 'INTERNAL_ERROR',
-        error_description: 'Ocorreu um erro interno no servidor.',
+        error_description: 'Ocorreu um erro interno no servidor',
       },
     },
   },
@@ -242,7 +242,7 @@ export const getCustomerMeasuresSchema = {
       description: 'Erro interno do servidor',
       example: {
         error_code: 'INTERNAL_ERROR',
-        error_description: 'Ocorreu um erro interno no servidor.',
+        error_description: 'Ocorreu um erro interno no servidor',
       },
     },
   },
