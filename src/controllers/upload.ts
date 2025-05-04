@@ -77,40 +77,28 @@ export const postUploadReading = async (request: FastifyRequest, reply: FastifyR
       });
     }
 
-    const imageType = match[1] === 'jpeg' ? 'jpg' : match[1];
+    const imageType = match[1];
 
     let extractedValue: number;
-    try {
-      const geminiResult = await geminiApiRequest([
-        {
-          role: 'user',
-          parts: [
-            {
-              inlineData: {
-                mimeType: `image/${imageType}`,
-                data: image.split(',')[1].trim(),
-              },
+    const geminiResult = await geminiApiRequest([
+      {
+        role: 'user',
+        parts: [
+          {
+            inlineData: {
+              mimeType: `image/${imageType}`,
+              data: image.split(',')[1].trim(),
             },
-            {
-              text: "Extrair apenas o valor numérico da leitura do medidor desta imagem. Responda apenas com o número, sem texto extra.",
-            },
-          ],
-        },
-      ]);
+          },
+          {
+            text: "Extrair apenas o valor numérico da leitura do medidor desta imagem. Responda apenas com o número, sem texto extra.",
+          },
+        ],
+      },
+    ]);
 
-      const rawText = geminiResult.trim();
-      extractedValue = parseFloat(rawText.replace(/[^\d.]/g, ''));
-
-      if (isNaN(extractedValue)) {
-        throw new Error('Valor extraído inválido');
-      }
-    } catch (error) {
-      console.error('Erro ao processar a imagem:', error);
-      return reply.status(400).send({
-        error_code: 'INVALID_DATA',
-        error_description: 'Erro ao interpretar a imagem e extrair o valor',
-      });
-    }
+    const rawText = geminiResult.trim();
+    extractedValue = parseFloat(rawText.replace(/[^\d.]/g, ''));
 
     const measureUuid = uuidv4();
 

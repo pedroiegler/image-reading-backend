@@ -1,6 +1,6 @@
 export const postUploadReadingSchema = {
   description: 'Responsável por receber uma imagem em base64, consultar o Gemini e retornar a medida lida pela API.',
-  tags: ['POST /upload'],
+  tags: ['Upload de Leitura'],
   body: {
     type: 'object',
     required: ['image', 'customer_code', 'measure_datetime', 'measure_type'],
@@ -75,7 +75,7 @@ export const postUploadReadingSchema = {
 
 export const patchConfirmMeasuresSchema = {
   description: 'Responsável por confirmar ou corrigir o valor lido pelo LLM.',
-  tags: ['PATCH /confirm'],
+  tags: ['Confirmação de Leitura'],
   body: {
     type: 'object',
     required: ['measure_uuid', 'confirmed_value'],
@@ -149,7 +149,7 @@ export const patchConfirmMeasuresSchema = {
 
 export const getCustomerMeasuresSchema = {
   description: 'Responsável por listar as medidas realizadas por um determinado cliente.',
-  tags: ['GET /<customer code>/list'],
+  tags: ['Listagem por Cliente'],
   params: {
     type: 'object',
     properties: {

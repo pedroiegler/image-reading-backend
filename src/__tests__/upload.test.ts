@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { postUploadReading } from '../controllers/upload';
 import { pool } from '../database/connection';
 import { geminiApiRequest } from '../gemini';
+import fs from 'fs';
 
 jest.mock('../database/connection', () => ({
   pool: {
@@ -194,5 +195,72 @@ describe('postUploadReading', () => {
       error_code: 'INTERNAL_ERROR',
       error_description: 'Ocorreu um erro interno no servidor.',
     });
+  });
+
+  it('deve registrar leitura com sucesso, inserindo cliente e retornando status 200', async () => {
+    const mockQuery = pool.query as jest.Mock;
+
+    mockQuery.mockResolvedValueOnce({ rowCount: 0 });
+    mockQuery.mockResolvedValueOnce({});
+    mockQuery.mockResolvedValueOnce({ rowCount: 0 });
+    mockQuery.mockResolvedValueOnce({});
+
+    (geminiApiRequest as jest.Mock).mockResolvedValue('123.45');
+    
+    let port = Number(process.env.PORT) || 3000
+
+    const request = {
+      body: {
+        image: 'data:image/jpeg;base64,aGVsbG8=',
+        customer_code: '123',
+        measure_datetime: '2024-04-01',
+        measure_type: 'WATER',
+      },
+      headers: {
+        host: `localhost:${port}`,
+      },
+      protocol: 'http',
+    } as any;
+
+    const status = jest.fn().mockReturnThis();
+    const send = jest.fn();
+
+    const reply = {
+      status,
+      send,
+    } as any;
+
+    await postUploadReading(request, reply);
+
+    expect(pool.query).toHaveBeenNthCalledWith(1,
+      `SELECT 1 FROM customers WHERE customer_code = $1`,
+      ['123']
+    );
+
+    expect(pool.query).toHaveBeenNthCalledWith(2,
+      expect.stringContaining('INSERT INTO customers'),
+      expect.arrayContaining(['123'])
+    );
+
+    expect(pool.query).toHaveBeenNthCalledWith(3,
+      expect.stringContaining('FROM images'),
+      ['123', 'WATER', '2024-04-01']
+    );
+
+    expect(pool.query).toHaveBeenNthCalledWith(4,
+      expect.stringContaining('INSERT INTO images'),
+      expect.arrayContaining(['123', expect.stringContaining('localhost'), '2024-04-01', 'WATER', 123.45, 'mocked-uuid'])
+    );
+
+    expect(geminiApiRequest).toHaveBeenCalled();
+
+    expect(fs.promises.writeFile).toHaveBeenCalled();
+
+    expect(status).toHaveBeenCalledWith(200);
+    expect(send).toHaveBeenCalledWith(expect.objectContaining({
+      image_url: expect.stringContaining('localhost'),
+      measure_value: 123.45,
+      measure_uuid: 'mocked-uuid',
+    }));
   });
 });
