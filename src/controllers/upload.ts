@@ -3,7 +3,7 @@ import path from 'path';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { pool } from '../database/connection';
 import { v4 as uuidv4 } from 'uuid';
-import { geminiApiRequest } from '../gemini';
+import { geminiApiRequest } from '../services/gemini';
 
 export const postUploadReading = async (request: FastifyRequest, reply: FastifyReply) => {
   try {

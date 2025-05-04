@@ -19,7 +19,7 @@ export const postUploadReadingSchema = {
       },
       measure_type: {
         type: 'string',
-        enum: ['WATER', 'GAS'],
+        minLength: 1,
       },
     },
   },

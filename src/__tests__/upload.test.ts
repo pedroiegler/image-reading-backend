@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { postUploadReading } from '../controllers/upload';
 import { pool } from '../database/connection';
-import { geminiApiRequest } from '../gemini';
+import { geminiApiRequest } from '../services/gemini';
 import fs from 'fs';
 
 jest.mock('../database/connection', () => ({
@@ -14,7 +14,7 @@ jest.mock('uuid', () => ({
   v4: jest.fn(() => 'mocked-uuid'),
 }));
 
-jest.mock('../gemini', () => ({
+jest.mock('../services/gemini', () => ({
   geminiApiRequest: jest.fn(),
 }));
 
