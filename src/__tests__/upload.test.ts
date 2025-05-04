@@ -207,7 +207,7 @@ describe('postUploadReading', () => {
 
     (geminiApiRequest as jest.Mock).mockResolvedValue('123.45');
     
-    let port = Number(process.env.PORT) || 3000
+    let port = Number(process.env.PORT) || 80;
 
     const request = {
       body: {
