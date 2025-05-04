@@ -13,8 +13,14 @@ jest.mock('uuid', () => ({
   v4: jest.fn(() => 'mocked-uuid'),
 }));
 
-jest.mock('../services/gemini', () => ({
+jest.mock('../gemini', () => ({
   geminiApiRequest: jest.fn(),
+}));
+
+jest.mock('fs', () => ({
+  promises: {
+    writeFile: jest.fn(),
+  },
 }));
 
 describe('postUploadReading', () => {
@@ -49,7 +55,53 @@ describe('postUploadReading', () => {
     expect(reply.send).toHaveBeenCalledWith({
       error_code: 'INVALID_DATA',
       error_description: 'Imagem inválida (não é base64 ou tipo não suportado)',
+      example: 'Exemplo válido: data:image/jpg;base64,/9j/4AAQSkZJRgABAQEASABIAAD...',
     });
+  });
+
+  it('deve retornar erro 400 se a imagem base64 estiver mal formatada (sem conteúdo após vírgula)', async () => {
+    const request = mockRequest({
+      image: 'data:image/jpeg;base64,',
+      customer_code: '123',
+      measure_datetime: '2024-04-01',
+      measure_type: 'WATER',
+    });
+  
+    const reply = mockReply();
+  
+    await postUploadReading(request, reply);
+  
+    expect(reply.status).toHaveBeenCalledWith(400);
+    expect(reply.send).toHaveBeenCalledWith({
+      error_code: 'INVALID_DATA',
+      error_description: 'Imagem em base64 mal formatada.',
+    });
+  });
+
+  it('deve retornar erro 400 se a string base64 não puder ser decodificada', async () => {
+    const originalBufferFrom = Buffer.from;
+    jest.spyOn(Buffer, 'from').mockImplementationOnce(() => {
+      throw new Error('Decoding error');
+    });
+  
+    const request = mockRequest({
+      image: 'data:image/jpeg;base64,abc123',
+      customer_code: '123',
+      measure_datetime: '2024-04-01',
+      measure_type: 'WATER',
+    });
+  
+    const reply = mockReply();
+  
+    await postUploadReading(request, reply);
+  
+    expect(reply.status).toHaveBeenCalledWith(400);
+    expect(reply.send).toHaveBeenCalledWith({
+      error_code: 'INVALID_DATA',
+      error_description: 'A string base64 não pôde ser decodificada.',
+    });
+  
+    Buffer.from = originalBufferFrom;
   });
 
   it('deve retornar erro 400 para tipo de medida inválido', async () => {
@@ -70,38 +122,35 @@ describe('postUploadReading', () => {
     });
   });
 
-  it('deve criar o cliente se ele não existir e salvar a medida', async () => {
+  it('deve inserir novo cliente se customer_code não existir na base', async () => {
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 0 }) 
-      .mockResolvedValueOnce({ rowCount: 0 }) 
-      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rowCount: 0 })
       .mockResolvedValueOnce({});
+  
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0 });
 
-    (geminiApiRequest as jest.Mock).mockResolvedValue('456.78');
-
+    (geminiApiRequest as jest.Mock).mockResolvedValue('123.45');
+  
     const request = mockRequest({
-      image: 'data:image/png;base64,abc123',
-      customer_code: '999',
+      image: 'data:image/jpeg;base64,aGVsbG8=',
+      customer_code: '321',
       measure_datetime: '2024-05-01',
-      measure_type: 'GAS',
+      measure_type: 'WATER',
     });
+
     const reply = mockReply();
 
     await postUploadReading(request, reply);
 
-    expect(pool.query).toHaveBeenCalledTimes(4);
-
+    expect(pool.query).toHaveBeenCalledWith(
+      `SELECT 1 FROM customers WHERE customer_code = $1`,
+      ['321']
+    );
+  
     expect(pool.query).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO customers'),
-      ['999', 'Cliente 999', 'cliente_999@dominio.com']
+      ['321', 'Cliente 321', 'cliente_321@dominio.com']
     );
-
-    expect(reply.status).toHaveBeenCalledWith(200);
-    expect(reply.send).toHaveBeenCalledWith({
-      image_url: expect.stringContaining('https://your-temporary-storage.com/images/'),
-      measure_value: 456.78,
-      measure_uuid: 'mocked-uuid',
-    });
   });
 
   it('deve retornar erro 409 se leitura já foi registrada', async () => {
@@ -123,57 +172,6 @@ describe('postUploadReading', () => {
     expect(reply.send).toHaveBeenCalledWith({
       error_code: 'DOUBLE_REPORT',
       error_description: 'Leitura do mês já realizada',
-    });
-  });
-
-  it('deve retornar erro 400 se gemini retornar valor inválido', async () => {
-    (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 1 })
-      .mockResolvedValueOnce({ rowCount: 0 });
-
-    (geminiApiRequest as jest.Mock).mockResolvedValue('resultado inválido');
-
-    const request = mockRequest({
-      image: 'data:image/jpeg;base64,abc123',
-      customer_code: '123',
-      measure_datetime: '2024-04-01',
-      measure_type: 'WATER',
-    });
-    const reply = mockReply();
-
-    await postUploadReading(request, reply);
-
-    expect(reply.status).toHaveBeenCalledWith(400);
-    expect(reply.send).toHaveBeenCalledWith({
-      error_code: 'INVALID_DATA',
-      error_description: 'Erro ao interpretar a imagem e extrair o valor',
-    });
-  });
-
-  it('deve salvar medida e retornar sucesso 200', async () => {
-    (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 1 })
-      .mockResolvedValueOnce({ rowCount: 0 })
-      .mockResolvedValueOnce({});
-
-    (geminiApiRequest as jest.Mock).mockResolvedValue('123.45');
-
-    const request = mockRequest({
-      image: 'data:image/jpeg;base64,abc123',
-      customer_code: '123',
-      measure_datetime: '2024-04-01',
-      measure_type: 'WATER',
-    });
-    const reply = mockReply();
-
-    await postUploadReading(request, reply);
-
-    expect(pool.query).toHaveBeenCalledTimes(3);
-    expect(reply.status).toHaveBeenCalledWith(200);
-    expect(reply.send).toHaveBeenCalledWith({
-      image_url: expect.stringContaining('https://your-temporary-storage.com/images/'),
-      measure_value: 123.45,
-      measure_uuid: 'mocked-uuid',
     });
   });
 

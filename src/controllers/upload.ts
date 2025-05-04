@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { pool } from '../database/connection';
 import { v4 as uuidv4 } from 'uuid';
@@ -7,10 +9,31 @@ export const postUploadReading = async (request: FastifyRequest, reply: FastifyR
   try {
     const { image, customer_code, measure_datetime, measure_type } = request.body as any;
 
-    if (!/^data:image\/(png|jpeg|jpg);base64,/.test(image)) {
+    const match = image.match(/^data:image\/(png|jpeg|jpg);base64,/);
+
+    if (!/^data:image\/(png|jpeg|jpg);base64,/.test(image) || !match) {
       return reply.status(400).send({
         error_code: 'INVALID_DATA',
         error_description: 'Imagem inválida (não é base64 ou tipo não suportado)',
+        example: 'Exemplo válido: data:image/jpg;base64,/9j/4AAQSkZJRgABAQEASABIAAD...'
+      });
+    }
+
+    const base64Part = image.split(',')[1];
+
+    if (!base64Part) {
+      return reply.status(400).send({
+        error_code: 'INVALID_DATA',
+        error_description: 'Imagem em base64 mal formatada.',
+      });
+    }
+
+    try {
+      Buffer.from(base64Part, 'base64');
+    } catch {
+      return reply.status(400).send({
+        error_code: 'INVALID_DATA',
+        error_description: 'A string base64 não pôde ser decodificada.',
       });
     }
 
@@ -54,6 +77,8 @@ export const postUploadReading = async (request: FastifyRequest, reply: FastifyR
       });
     }
 
+    const imageType = match[1] === 'jpeg' ? 'jpg' : match[1];
+
     let extractedValue: number;
     try {
       const geminiResult = await geminiApiRequest([
@@ -62,8 +87,8 @@ export const postUploadReading = async (request: FastifyRequest, reply: FastifyR
           parts: [
             {
               inlineData: {
-                mimeType: 'image/jpeg',
-                data: image.split(',')[1],
+                mimeType: `image/${imageType}`,
+                data: image.split(',')[1].trim(),
               },
             },
             {
@@ -87,9 +112,13 @@ export const postUploadReading = async (request: FastifyRequest, reply: FastifyR
       });
     }
 
-    const imageUrl = `https://your-temporary-storage.com/images/${uuidv4()}.jpg`;
-
     const measureUuid = uuidv4();
+
+    const filename = `${measureUuid}.${imageType}`;
+
+    await saveBase64Image(image, filename);
+
+    const imageUrl = `${request.protocol}://${request.headers.host}/images/temp_uploads/${filename}`;
 
     await pool.query(
       `
@@ -111,4 +140,12 @@ export const postUploadReading = async (request: FastifyRequest, reply: FastifyR
       error_description: 'Ocorreu um erro interno no servidor.',
     });
   }
+};
+
+export const saveBase64Image = async (base64: string, filename: string): Promise<string> => {
+  const base64Data = base64.replace(/^data:image\/\w+;base64,/, '');
+  const buffer = Buffer.from(base64Data, 'base64');
+  const filePath = path.join(__dirname, '..', 'assets', 'images', 'temp_uploads', filename);
+  await fs.promises.writeFile(filePath, buffer);
+  return filePath;
 };

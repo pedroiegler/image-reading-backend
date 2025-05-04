@@ -1,5 +1,5 @@
 export const postUploadReadingSchema = {
-  description: 'Responsável por receber uma imagem em base 64, consultar o Gemini e retornar a medida lida pela API.',
+  description: 'Responsável por receber uma imagem em base64, consultar o Gemini e retornar a medida lida pela API.',
   tags: ['POST /upload'],
   body: {
     type: 'object',
@@ -38,6 +38,7 @@ export const postUploadReadingSchema = {
       properties: {
         error_code: { type: 'string' },
         error_description: { type: 'string' },
+        example: { type: 'string' },
       },
       description: 'Os dados fornecidos no corpo da requisição são inválidos',
       example: {
@@ -82,11 +83,8 @@ export const patchConfirmMeasuresSchema = {
       measure_uuid: {
         type: 'string',
       },
-      confirmed_value: {
-        anyOf: [
-          { type: 'integer' },
-          { type: 'string' },
-        ],
+      confirmed_value: { 
+        type: 'integer' 
       },
     },
   },

@@ -10,7 +10,7 @@ services:
       - .:/app
       - /app/node_modules
     env_file:
-      - ./dotenv_files/.env
+      - ./.env
     depends_on:
       - db
 
@@ -22,4 +22,4 @@ services:
     volumes:
       - ./src/database:/docker-entrypoint-initdb.d
     env_file:
-      - ./dotenv_files/.env
+      - ./.env

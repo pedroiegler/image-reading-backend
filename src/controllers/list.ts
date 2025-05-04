@@ -6,6 +6,13 @@ export const getCustomerMeasures = async (request: FastifyRequest, reply: Fastif
   const { customer_code } = request.params as GetCustomerMeasuresParams;
   const { measure_type } = request.query as GetCustomerMeasuresQuery;
 
+  if (!customer_code || !customer_code.trim()) {
+    return reply.status(400).send({
+      error_code: 'INVALID_DATA',
+      error_description: 'Código do cliente é obrigatório.',
+    });
+  }
+
   if (measure_type && !['WATER', 'GAS'].includes(measure_type.toUpperCase())) {
     return reply.status(400).send({
       error_code: 'INVALID_TYPE',

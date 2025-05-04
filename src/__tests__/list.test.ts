@@ -26,6 +26,19 @@ describe('getCustomerMeasures', () => {
     jest.clearAllMocks();
   });
 
+  it('deve retornar erro 400 se customer_code não for fornecido', async () => {
+    const request = mockRequest({ customer_code: '' }, {});
+    const reply = mockReply();
+
+    await getCustomerMeasures(request, reply);
+
+    expect(reply.status).toHaveBeenCalledWith(400);
+    expect(reply.send).toHaveBeenCalledWith({
+      error_code: 'INVALID_DATA',
+      error_description: 'Código do cliente é obrigatório.',
+    });
+  });
+
   it('deve retornar erro 400 se tipo de medição for inválido', async () => {
     const request = mockRequest({ customer_code: '123' }, { measure_type: 'INVALIDO' });
     const reply = mockReply();
