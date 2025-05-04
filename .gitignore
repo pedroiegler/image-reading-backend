@@ -4,4 +4,4 @@ dist/
 coverage/
 jest-cache/
 jest-coverage/
-temp_uploads/
+temp_uploads/*
